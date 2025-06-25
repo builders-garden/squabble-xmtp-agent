@@ -1,6 +1,6 @@
 # XMTP Squabble Agent
 
-A sophisticated AI-powered game assistant for Squabble - a fast-paced, social word game designed for private friend groups on XMTP.
+An AI-powered game assistant for Squabble - a fast-paced, social word game designed for private friend groups on XMTP.
 
 ## 🎮 Overview
 
@@ -14,7 +14,6 @@ Squabble is a real-time multiplayer word game where 2-6 players compete on the s
 - 🤖 **AI-Powered Assistant** - Intelligent responses powered by OpenAI GPT-4
 - 🔐 **Secure Messaging** - Built on XMTP protocol for private, encrypted communications
 - 🌐 **REST API** - External integrations and programmatic message sending
-- 📱 **Cross-Platform** - Works with any XMTP-compatible wallet or client
 
 ## 🏗️ Architecture
 
@@ -188,71 +187,12 @@ Body:
 }
 ```
 
-## 🔒 Security Features
-
-- **Environment-based Configuration** - Sensitive data in environment variables
-- **API Authentication** - Secret-based authentication for external API access
-- **XMTP Encryption** - End-to-end encrypted messaging
-- **Wallet Security** - Secure key management with Coinbase CDP
-- **Input Validation** - Comprehensive input sanitization and validation
-
-## 🧪 Development
-
-### Code Quality
-
-The codebase includes:
-
-- **TypeScript** for type safety
-- **Modular Architecture** for maintainability
-- **Comprehensive Documentation** with JSDoc comments
-- **Error Handling** with graceful degradation
-- **Logging** for debugging and monitoring
-
-### Key Design Patterns
-
-- **Service Layer Pattern** - Business logic separated into services
-- **Factory Pattern** - Agent and tool initialization
-- **Observer Pattern** - Message streaming and handling
-- **Strategy Pattern** - Different message content extraction strategies
-
 ### Adding New Features
 
 1. **New Tools**: Add to `lib/tools/` directory
 2. **New Services**: Add to `services/` directory
 3. **New Utilities**: Add to `lib/utils/` directory
 4. **Configuration**: Update `config/constants.ts`
-
-## 📝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Follow the existing code organization patterns
-4. Add comprehensive TypeScript types and JSDoc comments
-5. Test your changes thoroughly
-6. Commit your changes (`git commit -m 'Add amazing feature'`)
-7. Push to the branch (`git push origin feature/amazing-feature`)
-8. Open a Pull Request
-
-### Code Style Guidelines
-
-- Use TypeScript for all new code
-- Follow the existing modular architecture
-- Add JSDoc comments for all functions
-- Use descriptive variable and function names
-- Include error handling and logging
-- Keep functions focused and single-purpose
-
-## 📄 License
-
-[Add your license information here]
-
-## 🤝 Support
-
-For technical support and questions:
-
-- **Issues**: [Create an issue](https://github.com/[username]/[repo]/issues)
-- **Documentation**: Refer to inline code documentation
-- **Architecture**: See the `/services` and `/lib` directories for implementation details
 
 ## 🔗 Related Links
 
