@@ -71,7 +71,6 @@ export function setupApiServer(client: Client): express.Application {
    */
   app.get("/api/conversations", async (req: any, res: any) => {
     try {
-      
       // Check authentication
       const agentSecret = req.headers["x-agent-secret"];
       const expectedSecret = RECEIVE_AGENT_SECRET;
@@ -175,7 +174,6 @@ export function setupApiServer(client: Client): express.Application {
    */
   app.post("/api/broadcast", async (req: any, res: any) => {
     try {
-      
       // Check authentication
       const agentSecret = req.headers["x-agent-secret"];
       const expectedSecret = RECEIVE_AGENT_SECRET;
@@ -276,7 +274,9 @@ export function setupApiServer(client: Client): express.Application {
           results.push({
             conversationId: conversation.id,
             status: "error",
-            message: `Failed to send message: ${error.message}`,
+            message: `Failed to send message: ${
+              error instanceof Error ? error.message : String(error)
+            }`,
           });
           errorCount++;
           console.error(
