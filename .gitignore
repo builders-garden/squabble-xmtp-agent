@@ -159,4 +159,4 @@ docker-compose.yaml
 logs/
 pids/ 
 
-.data/
+.data/dist/
