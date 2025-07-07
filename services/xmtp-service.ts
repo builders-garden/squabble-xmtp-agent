@@ -19,7 +19,11 @@ import {
   shouldSendHelpHint,
 } from "../lib/utils/message-utils";
 import { initializeAgent, processMessage } from "./agent-service";
-import { ERROR_MESSAGES, HELP_HINT_MESSAGE } from "../config/constants";
+import {
+  ERROR_MESSAGES,
+  HELP_HINT_MESSAGE,
+  WELCOME_MESSAGE,
+} from "../config/constants";
 
 /**
  * Environment variables interface for XMTP service
@@ -179,10 +183,10 @@ export async function handleMessage(
 }
 
 /**
- * Start listening for XMTP messages
+ * Start listening for XMTP messages and new group conversations
  *
- * Sets up a message stream to listen for incoming messages and processes
- * them through the handleMessage function.
+ * Sets up both a message stream to listen for incoming messages and a conversation
+ * stream to detect when the agent is added to new groups.
  *
  * @param client - The XMTP client instance
  * @param env - Environment variables object
@@ -196,13 +200,68 @@ export async function startMessageListener(
   // Create message stream for all conversations
   const messageStream = await client.conversations.streamAllMessages();
 
-  // Process each incoming message
-  for await (const message of messageStream) {
-    if (message) {
-      // Handle message in background to avoid blocking the stream
-      handleMessage(message, client, env).catch((error) => {
-        console.error("Error in message handler:", error);
-      });
+  // Start processing messages in background
+  (async () => {
+    for await (const message of messageStream) {
+      if (message) {
+        // Handle message in background to avoid blocking the stream
+        handleMessage(message, client, env).catch((error) => {
+          console.error("Error in message handler:", error);
+        });
+      }
     }
-  }
+  })();
+
+  console.log("👥 Starting new group detection...");
+
+  // Create conversation stream to detect new groups
+  const newGroupStream = client.conversations.stream(
+    async (error, conversation) => {
+      try {
+        if (error) {
+          console.error("Error in conversation stream:", error);
+          return;
+        }
+
+        if (!conversation) {
+          return;
+        }
+
+        // Check if this is a new Group (agent was added to a group)
+        if (conversation.constructor.name === "Group") {
+          console.log(`📥 New group detected: ${conversation.id}`);
+
+          // Wait for the group to be ready and sync messages
+          await new Promise((resolve) => setTimeout(resolve, 3000));
+          await conversation.sync();
+
+          // Check if the agent has sent a message to this group before
+          const messages = await conversation.messages({ limit: 20 });
+          const hasSentBefore = messages.some(
+            (msg) =>
+              msg.senderInboxId.toLowerCase() === client.inboxId.toLowerCase()
+          );
+
+          if (!hasSentBefore) {
+            console.log(
+              `🎉 Sending welcome message to new group: ${conversation.id}`
+            );
+
+            // Send the welcome message
+            await conversation.send(WELCOME_MESSAGE);
+            console.log(`NEW MESSAGE SENT: ${WELCOME_MESSAGE} to new group`);
+          } else {
+            console.log(
+              `✓ Already sent welcome message to group: ${conversation.id}`
+            );
+          }
+        }
+      } catch (error) {
+        console.error("Error handling new group:", error);
+      }
+    }
+  );
+
+  // Keep the streams running
+  console.log("✅ Message listener and group detection started");
 }
