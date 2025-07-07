@@ -32,7 +32,7 @@ export const createSigner = (key: string): Signer => {
   return {
     type: "EOA",
     getIdentifier: () => ({
-      identifierKind: "ethereum" as unknown as IdentifierKind,
+      identifierKind: IdentifierKind.Ethereum,
       identifier: user.account.address.toLowerCase(),
     }),
     signMessage: async (message: string) => {
@@ -73,7 +73,7 @@ export const getDbPath = (env: string, suffix: string = "xmtp") => {
   // Ensure volumePath is not empty
   if (!volumePath || volumePath.trim() === "") {
     throw new Error(
-      "Volume path is empty. Please set RAILWAY_VOLUME_MOUNT_PATH or check your Railway volume configuration.",
+      "Volume path is empty. Please set RAILWAY_VOLUME_MOUNT_PATH or check your Railway volume configuration."
     );
   }
 
@@ -98,7 +98,7 @@ export const getDbPath = (env: string, suffix: string = "xmtp") => {
 };
 
 export const logAgentDetails = async (
-  clients: Client | Client[],
+  clients: Client | Client[]
 ): Promise<void> => {
   const clientArray = Array.isArray(clients) ? clients : [clients];
   const clientsByAddress = clientArray.reduce<Record<string, Client[]>>(
@@ -108,7 +108,7 @@ export const logAgentDetails = async (
       acc[address].push(client);
       return acc;
     },
-    {},
+    {}
   );
 
   for (const [address, clientGroup] of Object.entries(clientsByAddress)) {
