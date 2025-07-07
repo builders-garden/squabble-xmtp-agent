@@ -172,6 +172,45 @@ GET /health
 
 Returns server status and timestamp.
 
+### List Conversations
+
+```http
+GET /api/conversations
+Headers:
+  Content-Type: application/json
+  x-agent-secret: your_api_secret
+
+Query Parameters (optional):
+  consentStates: allowed,unknown,denied (comma-separated)
+  type: all|groups|dms
+```
+
+Returns a list of existing conversations with optional filtering by consent state and type. By default, returns only conversations with "allowed" consent state.
+
+**Example Response:**
+```json
+{
+  "success": true,
+  "conversations": [
+    {
+      "id": "conversation_id",
+      "topic": "conversation_topic",
+      "peerAddress": "peer_address",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "consentState": 0,
+      "groupName": "Group Name",
+      "groupImageUrl": "https://example.com/image.jpg",
+      "groupDescription": "Group description"
+    }
+  ],
+  "total": 1,
+  "filters": {
+    "consentStates": ["allowed"],
+    "type": "all"
+  }
+}
+```
+
 ### Send Message
 
 ```http
@@ -184,6 +223,73 @@ Body:
 {
   "conversationId": "conversation_id",
   "message": "Hello from external service!"
+}
+```
+
+### Broadcast Message
+
+```http
+POST /api/broadcast
+Headers:
+  Content-Type: application/json
+  x-agent-secret: your_api_secret
+
+Body:
+{
+  "message": "Your announcement message",
+  "conversationIds": ["conversation_id_1", "conversation_id_2"],
+  "broadcastType": "all|groups|dms",
+  "consentStates": ["allowed", "unknown", "denied"]
+}
+```
+
+Sends a message to multiple conversations simultaneously. Supports different broadcast strategies:
+
+- **Specific conversations**: Provide `conversationIds` array with specific conversation IDs
+- **All conversations**: Set `broadcastType` to "all" and optionally filter by `consentStates`
+- **Groups only**: Set `broadcastType` to "groups"
+- **DMs only**: Set `broadcastType` to "dms"
+
+**Example Request (Specific Conversations):**
+```json
+{
+  "message": "🎉 Important announcement for selected chats!",
+  "conversationIds": ["5da5ada75cece8e740cc779f46c0e5a9", "0c35f359e70edd1ccb4316852c8d39bf"]
+}
+```
+
+**Example Request (All Conversations):**
+```json
+{
+  "message": "📢 Broadcast to everyone!",
+  "broadcastType": "all",
+  "consentStates": ["allowed", "unknown", "denied"]
+}
+```
+
+**Example Response:**
+```json
+{
+  "success": true,
+  "message": "Broadcast completed",
+  "summary": {
+    "total": 2,
+    "successful": 2,
+    "failed": 0
+  },
+  "sentMessage": "🎉 Important announcement!",
+  "results": [
+    {
+      "conversationId": "5da5ada75cece8e740cc779f46c0e5a9",
+      "status": "success",
+      "message": "Message sent successfully"
+    },
+    {
+      "conversationId": "0c35f359e70edd1ccb4316852c8d39bf",
+      "status": "success",
+      "message": "Message sent successfully"
+    }
+  ]
 }
 ```
 
