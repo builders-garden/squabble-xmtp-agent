@@ -8,6 +8,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "clean-db": "node lib/scripts/clean-db.js",
     "dev": "tsx --watch index.ts",
     "gen:keys": "tsx ../../scripts/generateKeys.ts",
     "lint": "cd ../.. && yarn eslint squabble-agentkit",
@@ -20,7 +21,7 @@
     "@langchain/core": "^0.3.19",
     "@langchain/langgraph": "^0.2.21",
     "@langchain/openai": "^0.3.14",
-    "@xmtp/node-sdk": "^3.0.0",
+    "@xmtp/node-sdk": "3.1.0",
     "express": "^4.18.2",
     "uint8arrays": "^5.1.0"
   },

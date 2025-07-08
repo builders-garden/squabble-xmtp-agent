@@ -34,13 +34,15 @@ IMPORTANT RULES:
 
 // Welcome message for new groups (currently commented out in main code)
 export const WELCOME_MESSAGE = `
-Squabble is a fast-paced, social word game designed for friend group chats on XMTP. 
+Squabble is a fast-paced word game for group chats on XMTP.
 
-In each match, 2 to 6 players compete on the same randomized letter grid in real-time, racing against the clock to place or create as many words as possible on the grid. 
+2–6 players. One shared letter grid. Total chaos.
+Everyone plays at the same time, racing to make words and sabotage friends.
 
-The twist? Everyone plays simultaneously on the same board, making every round a shared, high-stakes vocabulary duel.
+Each chat has its own leaderboard, so bragging rights are eternal.
+Start a match by tagging @squabble.base.eth or just @squabble.
 
-The group chat has a leaderboard considering all the matches made on Squabble on that group chat. Use @squabble.base.eth or just @squabble to invoke the squabble agent!
+Let the vocab battles begin. 🧩🔥
 `.trim();
 
 // Help hint message

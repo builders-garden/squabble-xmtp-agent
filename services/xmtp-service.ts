@@ -109,12 +109,6 @@ export async function handleMessage(
       return;
     }
 
-    // Extract message content
-    const messageContent = extractMessageContent(message);
-    console.log(
-      `NEW MESSAGE RECEIVED: ${messageContent} from ${senderAddress}`
-    );
-
     // Get the conversation
     conversation = (await client.conversations.getConversationById(
       message.conversationId
@@ -125,6 +119,12 @@ export async function handleMessage(
         ERROR_MESSAGES.CONVERSATION_NOT_FOUND(message.conversationId)
       );
     }
+
+    // Extract message content
+    const messageContent = extractMessageContent(message);
+    console.log(
+      `NEW MESSAGE RECEIVED: ${messageContent} from ${senderAddress}`
+    );
 
     // Check if message should trigger the Squabble agent
     if (!(await shouldRespondToMessage(message, client.inboxId, client))) {
@@ -197,71 +197,89 @@ export async function startMessageListener(
 ): Promise<void> {
   console.log("🎧 Starting message listener...");
 
-  // Create message stream for all conversations
-  const messageStream = await client.conversations.streamAllMessages();
-
-  // Start processing messages in background
-  (async () => {
-    for await (const message of messageStream) {
-      if (message) {
-        // Handle message in background to avoid blocking the stream
-        handleMessage(message, client, env).catch((error) => {
-          console.error("Error in message handler:", error);
-        });
+  // Stream conversations for welcome messages
+  const conversationStream = () => {
+    console.log("🔄 Waiting for new conversations...");
+    const handleConversation = (
+      error: Error | null,
+      conversation: Conversation | undefined
+    ) => {
+      if (error) {
+        console.error("Error in conversation stream:", error);
+        return;
       }
-    }
-  })();
+      if (!conversation) {
+        console.log("No conversation received");
+        return;
+      }
 
-  console.log("👥 Starting new group detection...");
+      void (async () => {
+        try {
+          const fetchedConversation =
+            await client.conversations.getConversationById(conversation.id);
 
-  // Create conversation stream to detect new groups
-  const newGroupStream = client.conversations.stream(
-    async (error, conversation) => {
-      try {
-        if (error) {
-          console.error("Error in conversation stream:", error);
-          return;
-        }
+          if (!fetchedConversation) {
+            console.log("Unable to find conversation, skipping");
+            return;
+          }
 
-        if (!conversation) {
-          return;
-        }
+          // Check if it's a group conversation
+          const isDm = fetchedConversation.constructor.name === "Dm";
+          if (isDm) {
+            console.log("Skipping DM conversation");
+            return;
+          }
 
-        // Check if this is a new Group (agent was added to a group)
-        if (conversation.constructor.name === "Group") {
-          console.log(`📥 New group detected: ${conversation.id}`);
+          console.log(
+            `🎉 New group conversation found: ${fetchedConversation.id}`
+          );
 
-          // Wait for the group to be ready and sync messages
-          await new Promise((resolve) => setTimeout(resolve, 3000));
-          await conversation.sync();
-
-          // Check if the agent has sent a message to this group before
-          const messages = await conversation.messages({ limit: 20 });
+          // Check if agent has sent messages before
+          const messages = await fetchedConversation.messages();
           const hasSentBefore = messages.some(
             (msg) =>
               msg.senderInboxId.toLowerCase() === client.inboxId.toLowerCase()
           );
 
           if (!hasSentBefore) {
-            console.log(
-              `🎉 Sending welcome message to new group: ${conversation.id}`
-            );
-
-            // Send the welcome message
-            await conversation.send(WELCOME_MESSAGE);
+            await fetchedConversation.send(WELCOME_MESSAGE);
             console.log(`NEW MESSAGE SENT: ${WELCOME_MESSAGE} to new group`);
-          } else {
-            console.log(
-              `✓ Already sent welcome message to group: ${conversation.id}`
-            );
           }
+        } catch (error) {
+          console.error("Error sending welcome message:", error);
         }
-      } catch (error) {
-        console.error("Error handling new group:", error);
-      }
-    }
-  );
+      })();
+    };
 
-  // Keep the streams running
-  console.log("✅ Message listener and group detection started");
+    // @ts-expect-error - TODO: fix this
+    void client.conversations.stream(handleConversation);
+  };
+
+  // Stream all messages for processing
+  const messageStream = () => {
+    console.log("🔄 Waiting for messages...");
+    void client.conversations.streamAllMessages((error, message) => {
+      if (error) {
+        console.error("Error in message stream:", error);
+        return;
+      }
+      if (!message) {
+        console.log("No message received");
+        return;
+      }
+
+      // Handle message in background to avoid blocking the stream
+      handleMessage(message, client, env).catch((error) => {
+        console.error("Error in message handler:", error);
+      });
+    });
+  };
+
+  // Run both streams concurrently
+  conversationStream();
+  messageStream();
+
+  console.log(
+    "✅ Message listener started with conversation and message streams"
+  );
 }
