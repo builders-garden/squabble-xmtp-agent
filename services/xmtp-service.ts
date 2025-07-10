@@ -72,8 +72,6 @@ export async function initializeXmtpClient(
   void logAgentDetails(client);
 
   // Sync conversations from network
-  console.log("✓ Syncing conversations...");
-  console.log(`📝 Agent Inbox ID:`, client.inboxId);
   await client.conversations.sync();
 
   return client;
@@ -102,11 +100,13 @@ export async function handleMessage(
 
     // Ignore messages from the bot itself
     if (senderAddress.toLowerCase() === botAddress) {
+      console.log("❌ HANDLER SKIP: Message from bot itself");
       return;
     }
 
     // Filter out reaction messages
     if (message?.contentType?.typeId === "reaction") {
+      console.log("❌ HANDLER SKIP: Reaction message");
       return;
     }
 
@@ -123,21 +123,27 @@ export async function handleMessage(
 
     // Extract message content
     const messageContent = extractMessageContent(message);
-    console.log(
-      `NEW MESSAGE RECEIVED: ${messageContent} from ${senderAddress}`
+
+    // Check if it's a reply message
+    const isReply = message.contentType?.typeId === "reply";
+
+    const shouldRespond = await shouldRespondToMessage(
+      message,
+      client.inboxId,
+      client
     );
 
-    // Check if message should trigger the Squabble agent
-    if (!(await shouldRespondToMessage(message, client.inboxId, client))) {
+    if (!shouldRespond) {
+
       // Check if they mentioned the bot but didn't use proper triggers
-      if (shouldSendHelpHint(messageContent)) {
+      const shouldHint = shouldSendHelpHint(messageContent);
+
+      if (shouldHint) {
         await conversation.send(HELP_HINT_MESSAGE);
-        console.log(
-          `NEW MESSAGE SENT: ${HELP_HINT_MESSAGE} to ${senderAddress}`
-        );
       }
       return;
     }
+
 
     // Get the sender's wallet address
     const senderInboxState = await client.preferences.inboxStateFromInboxIds([
@@ -165,20 +171,18 @@ export async function handleMessage(
 
     // Send the response
     await conversation.send(response);
-    console.log(`NEW MESSAGE SENT: ${response} to ${senderAddress}`);
   } catch (error) {
-    console.error("Error handling message:", error);
+    console.error("❌ ERROR HANDLING MESSAGE:", error);
 
     // Send error message to user if conversation is available
     if (conversation) {
       try {
         await conversation.send(ERROR_MESSAGES.GENERAL);
-        console.log(
-          `NEW MESSAGE SENT: ${ERROR_MESSAGES.GENERAL} to ${message.senderInboxId}`
-        );
       } catch (sendError) {
-        console.error("Failed to send error message:", sendError);
+        console.error("❌ FAILED TO SEND ERROR MESSAGE:", sendError);
       }
+    } else {
+      console.log("❌ NO CONVERSATION AVAILABLE FOR ERROR MESSAGE");
     }
   }
 }
@@ -196,21 +200,18 @@ export async function startMessageListener(
   client: Client,
   env: XmtpEnvironment
 ): Promise<void> {
-  console.log("🎧 Starting message listener...");
-
   // Stream conversations for welcome messages
   const conversationStream = () => {
-    console.log("🔄 Waiting for new conversations...");
     const handleConversation = (
       error: Error | null,
       conversation: Conversation | undefined
     ) => {
       if (error) {
-        console.error("Error in conversation stream:", error);
+        console.error("❌ CONVERSATION STREAM ERROR:", error);
         return;
       }
       if (!conversation) {
-        console.log("No conversation received");
+        console.log("⚠️ CONVERSATION STREAM: No conversation received");
         return;
       }
 
@@ -220,20 +221,18 @@ export async function startMessageListener(
             await client.conversations.getConversationById(conversation.id);
 
           if (!fetchedConversation) {
-            console.log("Unable to find conversation, skipping");
+            console.log(
+              "❌ CONVERSATION STREAM: Unable to find conversation, skipping"
+            );
             return;
           }
 
           // Check if it's a group conversation
           const isDm = fetchedConversation instanceof Dm;
+
           if (isDm) {
-            console.log("Skipping DM conversation");
             return;
           }
-
-          console.log(
-            `🎉 New group conversation found: ${fetchedConversation.id}`
-          );
 
           // Check if agent has sent messages before
           const messages = await fetchedConversation.messages();
@@ -244,10 +243,13 @@ export async function startMessageListener(
 
           if (!hasSentBefore) {
             await fetchedConversation.send(WELCOME_MESSAGE);
-            console.log(`NEW MESSAGE SENT: ${WELCOME_MESSAGE} to new group`);
+          } else {
           }
         } catch (error) {
-          console.error("Error sending welcome message:", error);
+          console.error(
+            "❌ CONVERSATION STREAM ERROR sending welcome message:",
+            error
+          );
         }
       })();
     };
@@ -258,7 +260,6 @@ export async function startMessageListener(
 
   // Stream all messages for processing
   const messageStream = () => {
-    console.log("🔄 Waiting for messages...");
     void client.conversations.streamAllMessages((error, message) => {
       if (error) {
         console.error("Error in message stream:", error);
@@ -270,6 +271,7 @@ export async function startMessageListener(
       }
 
       void (async () => {
+
         // Skip if the message is from the agent
         if (
           message.senderInboxId.toLowerCase() === client.inboxId.toLowerCase()
@@ -278,7 +280,10 @@ export async function startMessageListener(
         }
 
         // Skip if the message is not a text message
-        if (message.contentType?.typeId !== "text") {
+        if (
+          message.contentType?.typeId !== "text" &&
+          message.contentType?.typeId !== "reply"
+        ) {
           return;
         }
 
@@ -287,13 +292,9 @@ export async function startMessageListener(
         );
 
         if (!conversation) {
-          console.log("Unable to find conversation, skipping");
           return;
         }
-
-        // Handle DM messages with fixed response
         if (conversation instanceof Dm) {
-          console.log("DM detected, sending fixed response");
           await conversation.send(DM_RESPONSE_MESSAGE);
           return;
         }
@@ -308,9 +309,7 @@ export async function startMessageListener(
 
   // Run both streams concurrently
   conversationStream();
+
   messageStream();
 
-  console.log(
-    "✅ Message listener started with conversation and message streams"
-  );
 }
