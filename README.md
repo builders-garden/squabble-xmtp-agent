@@ -4,12 +4,12 @@ An AI-powered game assistant for Squabble - a fast-paced, social word game desig
 
 ## 🎮 Overview
 
-Squabble is a real-time multiplayer word game where 2-6 players compete on the same randomized letter grid, racing against the clock to create as many words as possible. The agent facilitates game sessions, manages betting with USDC, and maintains persistent leaderboards for group chats.
+Squabble is a real-time multiplayer word game where 2-6 players compete on the same randomized letter grid, racing against the clock to create as many words as possible. The agent facilitates game sessions, manages buy-ins with USDC, and maintains persistent leaderboards for group chats.
 
 ## ✨ Features
 
 - 🎯 **Real-time Game Management** - Coordinate multiplayer word game sessions
-- 💰 **Integrated Betting System** - Support for USDC betting with secure wallet integration
+- 💰 **Integrated Betting System** - Support for USDC buy-in with secure wallet integration
 - 🏆 **Persistent Leaderboards** - Track player performance across game sessions
 - 🤖 **AI-Powered Assistant** - Intelligent responses powered by OpenAI GPT-4
 - 🔐 **Secure Messaging** - Built on XMTP protocol for private, encrypted communications
@@ -130,7 +130,7 @@ The agent responds to natural language and supports:
 
 - **Game Management**
 
-  - Start new games with optional betting
+  - Start new games with optional buy-in
   - View current and past game sessions
   - Get game rules and help
 
@@ -141,15 +141,15 @@ The agent responds to natural language and supports:
   - Track win/loss records
 
 - **Betting Integration**
-  - Place bets in USDC
-  - Support for various bet amounts
-  - "No bet" option for casual play
+  - Place buy-ins in USDC
+  - Support for various buy-in amounts
+  - "No buy-in" option for casual play
 
 ### Example Interactions
 
 ```
 User: "@squabble start a new game"
-Agent: "Please specify how much you'd like to bet..."
+Agent: "Please specify how much you'd like to buy-in..."
 
 User: "0.01 USDC"
 Agent: "🎮 Game created! Good luck! 🍀"

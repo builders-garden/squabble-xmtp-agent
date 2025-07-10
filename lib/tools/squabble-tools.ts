@@ -21,6 +21,7 @@ interface LeaderboardPlayer {
   points: number;
   wins: number;
   totalGames: number;
+  totalWinnings: number;
 }
 
 interface LeaderboardResponse {
@@ -64,14 +65,26 @@ export function createSquabbleTools(config: SquabbleToolsConfig) {
     description: "Get help and rules for the Squabble game",
     schema: z.object({}),
     func: async () => {
+      console.log("🔧 TOOL CALLED: squabble_help");
       try {
-        const rulesPrompt =
-          'Generate a concise and engaging explanation of the Squabble game rules. Include that players take turns making moves and the goal is to capture the most territory. Also mention that players can use @squabble.base.eth start to begin a new game and @squabble.base.eth leaderboard to see current standings. Do not use formatting like ** or * when telling the commands, like "@squabble.base.eth help me".';
-        const rulesResponse = await generateResponse(rulesPrompt);
-        return rulesResponse;
+        const helpMessage = `Hey! I'm Squabble — a fast-paced word game for group chats.
+
+2–6 players. One grid. Total chaos. 🧩
+
+Reply or mention @squabble to play:
+→ start game to begin
+→ Add a buy-in like "start game 0.01 USDC" if you want to raise the stakes 💸
+
+Let's go! 🔥`;
+
+        // Send the message directly to the conversation
+        await conversation.send(helpMessage);
+
+        // Return a specific signal that indicates direct message was sent
+        return "DIRECT_MESSAGE_SENT: Help message has been sent to the chat.";
       } catch (error) {
         console.error("❌ TOOL ERROR: squabble_help -", error);
-        return "Failed to generate help message. Please try again.";
+        return "Failed to send help message. Please try again.";
       }
     },
   });
@@ -79,20 +92,21 @@ export function createSquabbleTools(config: SquabbleToolsConfig) {
   const startGameTool = new DynamicStructuredTool({
     name: "squabble_start_game",
     description:
-      "Start a new Squabble game with the group members. Call this tool when: 1) User explicitly asks to start a game, 2) User provides a bet amount (like '1', '0.01', 'no bet', '5 ETH'), 3) User replies with what looks like a bet amount after being prompted. If no bet amount is provided in the initial request, ask the user for it.",
+      "Start a new Squabble game with the group members. Call this tool when users want to start/create/begin a game.",
     schema: z.object({
       betAmount: z
         .string()
         .nullable()
         .default(null)
         .describe(
-          "Bet amount for the game. Can be a number like '1', '0.01', or text like 'no bet', '10 USDC'. If not provided, ask the user for it. The amount must be specified in $ or USDC or just a number, in the latter case it will be interpreted as USDC. No other tokens!. ",
+          "Buy-in amount for the game. Can be a number like '1', '0.01', or text like 'no buy-in', '10 USDC'. If not provided, ask the user for it. The amount must be specified in $ or USDC or just a number, in the latter case it will be interpreted as USDC. No other tokens!. "
         ),
     }),
     func: async ({ betAmount }) => {
-      // If no bet amount is specified, ask for it
+      console.log("🔧 TOOL CALLED: squabble_start_game", { betAmount });
+      // If no buy-in amount is specified, ask for it
       if (!betAmount || betAmount === "null" || betAmount.trim() === "") {
-        return "Please specify how much you'd like to bet for this game. You can enter an amount (like '0.01 ETH' or '10 USDC') or say 'no bet' if you prefer to play without betting.";
+        return "Please specify how much you'd like to buy-in for this game. You can enter an amount (like '0.01 ETH' or '10 USDC') or say 'no buy-in' if you prefer to play without buying-in.";
       }
 
       try {
@@ -127,7 +141,9 @@ export function createSquabbleTools(config: SquabbleToolsConfig) {
         }
 
         const gameData = await response.json();
-        const gameUrl = `${squabbleUrl}/games/${(gameData as GameCreationResponse).id}`;
+        const gameUrl = `${squabbleUrl}/games/${
+          (gameData as GameCreationResponse).id
+        }`;
         const gameMessage = `🎮 Game created! Good luck! 🍀`;
 
         // Send the first message with game creation announcement
@@ -159,7 +175,7 @@ export function createSquabbleTools(config: SquabbleToolsConfig) {
               "Content-Type": "application/json",
               "x-agent-secret": agentSecret.trim(),
             },
-          },
+          }
         );
 
         if (!response.ok) {
@@ -178,6 +194,7 @@ export function createSquabbleTools(config: SquabbleToolsConfig) {
           points: player.points,
           wins: player.wins,
           totalGames: player.totalGames,
+          totalWinnings: player.totalWinnings,
         }));
 
         // Sort by points (highest first), then by wins if tied
@@ -191,7 +208,7 @@ export function createSquabbleTools(config: SquabbleToolsConfig) {
 
         filteredLeaderboard.forEach((player, index) => {
           const rank = index + 1;
-          leaderboardMessage += `${rank}. ${player.username} - ${player.points} pts (${player.wins}W/${player.totalGames}G)\n`;
+          leaderboardMessage += `${rank}. ${player.username} - ${player.points} pts (${player.wins}W/${player.totalGames}G) - ${player.totalWinnings} USDC\n`;
         });
 
         leaderboardMessage +=
@@ -225,7 +242,9 @@ export function createSquabbleTools(config: SquabbleToolsConfig) {
         }
 
         const gameData = await response.json();
-        const gameUrl = `${squabbleUrl}/games/${(gameData as GameCreationResponse).id}`;
+        const gameUrl = `${squabbleUrl}/games/${
+          (gameData as GameCreationResponse).id
+        }`;
         const gameMessage = `🎮 Latest Game:`;
 
         // Send the first message with latest game announcement

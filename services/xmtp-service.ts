@@ -5,7 +5,7 @@
  * and message handling logic for the Squabble agent.
  */
 
-import { Client } from "@xmtp/node-sdk";
+import { Client, Dm } from "@xmtp/node-sdk";
 import type { Conversation, DecodedMessage, XmtpEnv } from "@xmtp/node-sdk";
 import {
   createSigner,
@@ -20,6 +20,7 @@ import {
 } from "../lib/utils/message-utils";
 import { initializeAgent, processMessage } from "./agent-service";
 import {
+  DM_RESPONSE_MESSAGE,
   ERROR_MESSAGES,
   HELP_HINT_MESSAGE,
   WELCOME_MESSAGE,
@@ -224,7 +225,7 @@ export async function startMessageListener(
           }
 
           // Check if it's a group conversation
-          const isDm = fetchedConversation.constructor.name === "Dm";
+          const isDm = fetchedConversation instanceof Dm;
           if (isDm) {
             console.log("Skipping DM conversation");
             return;
@@ -268,10 +269,40 @@ export async function startMessageListener(
         return;
       }
 
-      // Handle message in background to avoid blocking the stream
-      handleMessage(message, client, env).catch((error) => {
-        console.error("Error in message handler:", error);
-      });
+      void (async () => {
+        // Skip if the message is from the agent
+        if (
+          message.senderInboxId.toLowerCase() === client.inboxId.toLowerCase()
+        ) {
+          return;
+        }
+
+        // Skip if the message is not a text message
+        if (message.contentType?.typeId !== "text") {
+          return;
+        }
+
+        const conversation = await client.conversations.getConversationById(
+          message.conversationId
+        );
+
+        if (!conversation) {
+          console.log("Unable to find conversation, skipping");
+          return;
+        }
+
+        // Handle DM messages with fixed response
+        if (conversation instanceof Dm) {
+          console.log("DM detected, sending fixed response");
+          await conversation.send(DM_RESPONSE_MESSAGE);
+          return;
+        }
+
+        // Handle group messages with normal processing
+        handleMessage(message, client, env).catch((error) => {
+          console.error("Error in message handler:", error);
+        });
+      })();
     });
   };
 

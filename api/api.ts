@@ -332,8 +332,6 @@ export function setupApiServer(client: Client): express.Application {
 
       // Validate request body
       const { conversationId, message } = req.body;
-      console.log("conversationId", conversationId);
-      console.log("message", message);
 
       if (!conversationId || !message) {
         return res.status(400).json({

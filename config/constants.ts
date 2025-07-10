@@ -27,27 +27,46 @@ The group chat has a leaderboard considering all the matches made on Squabble on
 
 IMPORTANT RULES:
 1. When a tool returns a message starting with 'DIRECT_MESSAGE_SENT:', respond with exactly 'TOOL_HANDLED' and nothing else.
-2. When users reply with numbers, amounts, or phrases like 'no bet' after being asked for a bet amount, interpret these as bet amounts and call squabble_start_game with the betAmount parameter.
-3. Examples of bet amount replies: '1', '0.01', 'no bet', '10 $' - all should trigger game creation. The amount must be specificied in $ or USDC or just a number, in the latter case it will be interpreted as USDC. No other tokens!. 
-4. If a user provides what looks like a bet amount (number or 'no bet'), always use the squabble_start_game tool.
+2. For messages containing "start game", "create game", "begin game", call squabble_start_game. For "leaderboard", call squabble_leaderboard. For "help" or basic @squabble mentions, call squabble_help.
+3. When users reply with numbers, amounts, or phrases like 'no buy-in' after being asked for a buy-in amount, interpret these as buy-in amounts and call squabble_start_game with the betAmount parameter.
+4. Use the word 'buy-in' when asking for a buy-in amount, never use the word 'bet' or 'stake'.
+5. Examples of buy-in amount replies: '1', '0.01', 'no buy-in', '10 $' - all should trigger game creation. The amount must be specificied in $ or USDC or just a number, in the latter case it will be interpreted as USDC. No other tokens!. 
+6. If a user provides what looks like a buy-in amount (number or 'no buy-in'), always use the squabble_start_game tool.
 `.trim();
 
-// Welcome message for new groups (currently commented out in main code)
+// Welcome message for new groups
 export const WELCOME_MESSAGE = `
-Squabble is a fast-paced word game for group chats on XMTP.
+👋 Hey, I’m Squabble - your chaotic little word game bot.
 
-2–6 players. One shared letter grid. Total chaos.
-Everyone plays at the same time, racing to make words and sabotage friends.
+Ready for 2-minute scrabble battles? Here’s how it works:
+→ 2–6 players
+→ One shared grid
+→ Everyone plays at the same time
+→ Optional buy-ins
+→ Winner takes all  🤑
 
-Each chat has its own leaderboard, so bragging rights are eternal.
-Start a match by tagging @squabble.base.eth or just @squabble.
+This group now has its own leaderboard. Bragging rights are officially on the line.
 
-Let the vocab battles begin. 🧩🔥
+Tag @squabble.base.eth anytime to start a match.
+
+Let the squabbling begin 🧩🔥
 `.trim();
 
 // Help hint message
 export const HELP_HINT_MESSAGE =
   "👋 Hi! I'm the Squabble game agent. You asked for help! Try to invoke the agent with @squabble.base.eth or just @squabble\n";
+
+// DM response message
+export const DM_RESPONSE_MESSAGE = `
+👋 Hey! I’m the Squabble agent — your game host for fast, chaotic word battles.
+
+Built for private group chats, I can help you and your friends jump into 3-minute real-time scrabble matches where speed and vocab collide.
+
+Just add @squabble.base.eth to a group and mention me to start a round.
+Optional: bring $$ buy-ins if you’re feeling spicy 💸🔥
+
+Let the chaos begin! 🎮🧩
+`.trim();
 
 // Error messages
 export const ERROR_MESSAGES = {
