@@ -124,6 +124,8 @@ Let's go! 🔥`;
 
         const senderAddress = memberStates?.[0]?.recoveryIdentifier?.identifier;
 
+        const adjustedBetAmount = betAmount === "no buy-in" ? 0 : betAmount;
+
         const response = await fetch(`${squabbleUrl}/api/agent/create-game`, {
           method: "POST",
           headers: {
@@ -131,7 +133,7 @@ Let's go! 🔥`;
             "x-agent-secret": agentSecret.trim(),
           },
           body: JSON.stringify({
-            betAmount: betAmount,
+            betAmount: adjustedBetAmount,
             conversationId: conversation?.id,
           }),
         });
