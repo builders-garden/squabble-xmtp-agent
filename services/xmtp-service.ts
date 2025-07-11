@@ -198,67 +198,104 @@ export async function startMessageListener(
   client: Client,
   env: XmtpEnvironment
 ): Promise<void> {
-  // Retry configuration for message stream
+  // Retry configuration for both streams
   const MAX_RETRIES = 5;
   const RETRY_INTERVAL = 5000;
   let messageStreamRetries = MAX_RETRIES;
+  let conversationStreamRetries = MAX_RETRIES;
 
-  // Stream conversations for welcome messages
-  const conversationStream = () => {
-    const handleConversation = (
-      error: Error | null,
-      conversation: Conversation | undefined
-    ) => {
-      if (error) {
-        console.error("❌ CONVERSATION STREAM ERROR:", error);
-        return;
-      }
-      if (!conversation) {
-        console.log("⚠️ CONVERSATION STREAM: No conversation received");
-        return;
-      }
+  // Conversation stream retry logic
+  const retryConversationStream = () => {
+    console.log(
+      `🔄 Retrying conversation stream in ${
+        RETRY_INTERVAL / 1000
+      }s, ${conversationStreamRetries} retries left`
+    );
+    if (conversationStreamRetries > 0) {
+      conversationStreamRetries--;
+      setTimeout(() => {
+        startConversationStream();
+      }, RETRY_INTERVAL);
+    } else {
+      console.error(
+        "❌ Max retries reached for conversation stream, ending process"
+      );
+      process.exit(1);
+    }
+  };
 
-      void (async () => {
-        try {
-          const fetchedConversation =
-            await client.conversations.getConversationById(conversation.id);
+  // Conversation stream failure handler
+  const onConversationStreamFail = () => {
+    console.error("❌ Conversation stream failed");
+    retryConversationStream();
+  };
 
-          if (!fetchedConversation) {
-            console.log(
-              "❌ CONVERSATION STREAM: Unable to find conversation, skipping"
-            );
-            return;
-          }
+  // Start conversation stream with retry logic
+  const startConversationStream = async () => {
+    console.log("🔄 Starting conversation stream...");
+    try {
+      await client.conversations.sync();
 
-          // Check if it's a group conversation
-          const isDm = fetchedConversation instanceof Dm;
-
-          if (isDm) {
-            return;
-          }
-
-          // Check if agent has sent messages before
-          const messages = await fetchedConversation.messages();
-          const hasSentBefore = messages.some(
-            (msg) =>
-              msg.senderInboxId.toLowerCase() === client.inboxId.toLowerCase()
-          );
-
-          if (!hasSentBefore) {
-            await fetchedConversation.send(WELCOME_MESSAGE);
-          } else {
-          }
-        } catch (error) {
-          console.error(
-            "❌ CONVERSATION STREAM ERROR sending welcome message:",
-            error
-          );
+      const handleConversation = (
+        error: Error | null,
+        conversation: Conversation | undefined
+      ) => {
+        if (error) {
+          console.error("❌ CONVERSATION STREAM ERROR:", error);
+          return;
         }
-      })();
-    };
+        if (!conversation) {
+          console.log("⚠️ CONVERSATION STREAM: No conversation received");
+          return;
+        }
 
-    // @ts-expect-error - TODO: fix this
-    void client.conversations.stream(handleConversation);
+        void (async () => {
+          try {
+            const fetchedConversation =
+              await client.conversations.getConversationById(conversation.id);
+
+            if (!fetchedConversation) {
+              console.log(
+                "❌ CONVERSATION STREAM: Unable to find conversation, skipping"
+              );
+              return;
+            }
+
+            // Check if it's a group conversation
+            const isDm = fetchedConversation instanceof Dm;
+
+            if (isDm) {
+              return;
+            }
+
+            // Check if agent has sent messages before
+            const messages = await fetchedConversation.messages();
+            const hasSentBefore = messages.some(
+              (msg) =>
+                msg.senderInboxId.toLowerCase() === client.inboxId.toLowerCase()
+            );
+
+            if (!hasSentBefore) {
+              await fetchedConversation.send(WELCOME_MESSAGE);
+            } else {
+            }
+          } catch (error) {
+            console.error(
+              "❌ CONVERSATION STREAM ERROR sending welcome message:",
+              error
+            );
+          }
+        })();
+      };
+      
+      // @ts-expect-error 
+      void client.conversations.stream(handleConversation,onConversationStreamFail);
+
+      console.log("✅ Conversation stream started successfully");
+    } catch (error) {
+      console.error("❌ Failed to start conversation stream:", error);
+      onConversationStreamFail();
+    }
   };
 
   // Message stream retry logic
@@ -352,6 +389,6 @@ export async function startMessageListener(
   };
 
   // Run both streams concurrently
-  conversationStream();
+  startConversationStream();
   startMessageStream();
 }
