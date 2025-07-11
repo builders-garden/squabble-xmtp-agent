@@ -134,7 +134,6 @@ export async function handleMessage(
     );
 
     if (!shouldRespond) {
-
       // Check if they mentioned the bot but didn't use proper triggers
       const shouldHint = shouldSendHelpHint(messageContent);
 
@@ -143,7 +142,6 @@ export async function handleMessage(
       }
       return;
     }
-
 
     // Get the sender's wallet address
     const senderInboxState = await client.preferences.inboxStateFromInboxIds([
@@ -200,6 +198,11 @@ export async function startMessageListener(
   client: Client,
   env: XmtpEnvironment
 ): Promise<void> {
+  // Retry configuration for message stream
+  const MAX_RETRIES = 5;
+  const RETRY_INTERVAL = 5000;
+  let messageStreamRetries = MAX_RETRIES;
+
   // Stream conversations for welcome messages
   const conversationStream = () => {
     const handleConversation = (
@@ -258,58 +261,97 @@ export async function startMessageListener(
     void client.conversations.stream(handleConversation);
   };
 
-  // Stream all messages for processing
-  const messageStream = () => {
-    void client.conversations.streamAllMessages((error, message) => {
-      if (error) {
-        console.error("Error in message stream:", error);
+  // Message stream retry logic
+  const retryMessageStream = () => {
+    console.log(
+      `🔄 Retrying message stream in ${
+        RETRY_INTERVAL / 1000
+      }s, ${messageStreamRetries} retries left`
+    );
+    if (messageStreamRetries > 0) {
+      messageStreamRetries--;
+      setTimeout(() => {
+        startMessageStream();
+      }, RETRY_INTERVAL);
+    } else {
+      console.error(
+        "❌ Max retries reached for message stream, ending process"
+      );
+      process.exit(1);
+    }
+  };
+
+  // Message stream failure handler
+  const onMessageStreamFail = () => {
+    console.error("❌ Message stream failed");
+    retryMessageStream();
+  };
+
+  // Message handler for the stream
+  const onMessage = (error: Error | null, message?: DecodedMessage) => {
+    if (error) {
+      console.error("❌ Error in message stream:", error);
+      return;
+    }
+    if (!message) {
+      console.log("⚠️ No message received");
+      return;
+    }
+
+    void (async () => {
+      // Skip if the message is from the agent
+      if (
+        message.senderInboxId.toLowerCase() === client.inboxId.toLowerCase()
+      ) {
         return;
       }
-      if (!message) {
-        console.log("No message received");
+
+      // Skip if the message is not a text message
+      if (
+        message.contentType?.typeId !== "text" &&
+        message.contentType?.typeId !== "reply"
+      ) {
         return;
       }
 
-      void (async () => {
+      const conversation = await client.conversations.getConversationById(
+        message.conversationId
+      );
 
-        // Skip if the message is from the agent
-        if (
-          message.senderInboxId.toLowerCase() === client.inboxId.toLowerCase()
-        ) {
-          return;
-        }
+      if (!conversation) {
+        return;
+      }
+      if (conversation instanceof Dm) {
+        await conversation.send(DM_RESPONSE_MESSAGE);
+        return;
+      }
 
-        // Skip if the message is not a text message
-        if (
-          message.contentType?.typeId !== "text" &&
-          message.contentType?.typeId !== "reply"
-        ) {
-          return;
-        }
+      // Handle group messages with normal processing
+      handleMessage(message, client, env).catch((error) => {
+        console.error("❌ Error in message handler:", error);
+      });
+    })();
+  };
 
-        const conversation = await client.conversations.getConversationById(
-          message.conversationId
-        );
-
-        if (!conversation) {
-          return;
-        }
-        if (conversation instanceof Dm) {
-          await conversation.send(DM_RESPONSE_MESSAGE);
-          return;
-        }
-
-        // Handle group messages with normal processing
-        handleMessage(message, client, env).catch((error) => {
-          console.error("Error in message handler:", error);
-        });
-      })();
-    });
+  // Start message stream with retry logic
+  const startMessageStream = async () => {
+    console.log("🔄 Starting message stream...");
+    try {
+      await client.conversations.sync();
+      await client.conversations.streamAllMessages(
+        onMessage,
+        undefined,
+        undefined,
+        onMessageStreamFail
+      );
+      console.log("✅ Message stream started successfully");
+    } catch (error) {
+      console.error("❌ Failed to start message stream:", error);
+      onMessageStreamFail();
+    }
   };
 
   // Run both streams concurrently
   conversationStream();
-
-  messageStream();
-
+  startMessageStream();
 }
