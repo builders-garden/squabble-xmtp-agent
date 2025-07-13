@@ -124,7 +124,7 @@ Let's go! 🔥`;
 
         const senderAddress = memberStates?.[0]?.recoveryIdentifier?.identifier;
 
-        const adjustedBetAmount = betAmount === "no buy-in" ? 0 : betAmount;
+        const adjustedBetAmount = betAmount === "no buy-in" ? "0" : betAmount;
 
         const response = await fetch(`${squabbleUrl}/api/agent/create-game`, {
           method: "POST",
@@ -210,7 +210,7 @@ Let's go! 🔥`;
 
         filteredLeaderboard.forEach((player, index) => {
           const rank = index + 1;
-          leaderboardMessage += `${rank}. ${player.username} - ${player.points} pts (${player.wins}W/${player.totalGames}G) - ${player.totalWinnings} USDC\n`;
+          leaderboardMessage += `${rank}. ${player.username} - ${player.points} pts (${player.wins}W/${player.totalGames}G) - ${player.totalWinnings}$\n`;
         });
 
         leaderboardMessage +=

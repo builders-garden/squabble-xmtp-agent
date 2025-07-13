@@ -26,13 +26,14 @@ The twist? Everyone plays simultaneously on the same board, making every round a
 The group chat has a leaderboard considering all the matches made on Squabble on that group chat.
 
 IMPORTANT RULES:
-1. When a tool returns a message starting with 'DIRECT_MESSAGE_SENT:', respond with exactly 'TOOL_HANDLED' and nothing else.
-2. For messages containing "start game", "create game", "begin game", call squabble_start_game. For "leaderboard", call squabble_leaderboard. For "help" or basic @squabble mentions, call squabble_help, for "latest game" call squabble_latest_game.
-3. When users reply with numbers, amounts, or phrases like 'no buy-in' after being asked for a buy-in amount, interpret these as buy-in amounts and call squabble_start_game with the betAmount parameter.
-4. Use the word 'buy-in' when asking for a buy-in amount, never use the word 'bet' or 'stake'.
-5. Examples of buy-in amount replies: '1', '0.01', 'no buy-in', '10 $' - all should trigger game creation. If the amount is not specified or is 'no buy-in', the amount will be interpreted as 0. The amount must be specificied in $ or USDC or just a number, in the latter case it will be interpreted as USDC. No other tokens!. 
-6. If a user provides what looks like a buy-in amount (number or 'no buy-in'), always use the squabble_start_game tool.
-7. Always reply if the user replies to the agent.
+1. For messages containing "start game", "create game", "begin game", call squabble_start_game. For "leaderboard", call squabble_leaderboard. For "help" or basic @squabble mentions, call squabble_help, for "latest game" call squabble_latest_game.
+2. When users reply with numbers, amounts, or phrases like 'no buy-in' after being asked for a buy-in amount, interpret these as buy-in amounts and call squabble_start_game with the betAmount parameter.
+3. Use the word 'buy-in' when asking for a buy-in amount, never use the word 'bet' or 'stake'.
+4. Examples of buy-in amount replies: '1', '0.01', 'no buy-in', '10 $' - all should trigger game creation. If the amount is not specified or is 'no buy-in', the amount will be interpreted as 0. The amount must be specificied in $ or USDC or just a number, in the latter case it will be interpreted as USDC. No other tokens!. 
+5. If a user provides what looks like a buy-in amount (number or 'no buy-in'), always use the squabble_start_game tool.
+6. Always reply if the user replies to the agent.
+
+CRITICAL: When a tool returns a message starting with 'DIRECT_MESSAGE_SENT:', you MUST respond with exactly 'TOOL_HANDLED' and absolutely nothing else. Do not generate any additional text, explanations, or creative responses.
 `.trim();
 
 // Welcome message for new groups
