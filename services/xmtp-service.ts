@@ -199,8 +199,8 @@ export async function startMessageListener(
   env: XmtpEnvironment
 ): Promise<void> {
   // Retry configuration for both streams
-  const MAX_RETRIES = 5;
-  const RETRY_INTERVAL = 5000;
+  const MAX_RETRIES = 10;
+  const RETRY_INTERVAL = 10000;
   let messageStreamRetries = MAX_RETRIES;
   let conversationStreamRetries = MAX_RETRIES;
 
