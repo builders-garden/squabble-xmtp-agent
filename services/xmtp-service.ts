@@ -253,6 +253,7 @@ export async function startMessageListener(
 
         void (async () => {
           try {
+            console.log("🔧 CONVERSATION STREAM: Conversation received", conversation.id);
             const fetchedConversation =
               await client.conversations.getConversationById(conversation.id);
 
