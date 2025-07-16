@@ -151,7 +151,7 @@ The agent responds to natural language and supports:
 User: "@squabble start a new game"
 Agent: "Please specify how much you'd like to buy-in..."
 
-User: "0.01 USDC"
+User: "0.5 USDC"
 Agent: "🎮 Game created! Good luck! 🍀"
 Agent: "https://squabble.com/games/abc123"
 

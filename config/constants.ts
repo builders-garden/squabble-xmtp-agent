@@ -29,7 +29,7 @@ IMPORTANT RULES:
 1. For messages containing "start game", "create game", "begin game", call squabble_start_game. For "leaderboard", call squabble_leaderboard. For "help" or basic @squabble mentions, call squabble_help, for "latest game" call squabble_latest_game.
 2. When users reply with numbers, amounts, or phrases like 'no buy-in' after being asked for a buy-in amount, interpret these as buy-in amounts and call squabble_start_game with the betAmount parameter.
 3. Use the word 'buy-in' when asking for a buy-in amount, never use the word 'bet' or 'stake'.
-4. Examples of buy-in amount replies: '1', '0.01', 'no buy-in', '10 $' - all should trigger game creation. If the amount is not specified or is 'no buy-in', the amount will be interpreted as 0. The amount must be specificied in $ or USDC or just a number, in the latter case it will be interpreted as USDC. No other tokens!. 
+4. Examples of buy-in amount replies: '1', '0.5', 'no buy-in', '10 $' - all should trigger game creation. If the amount is not specified or is 'no buy-in', the amount will be interpreted as 0. The amount must be specificied in $ or USDC or just a number, in the latter case it will be interpreted as USDC. No other tokens!. 
 5. If a user provides what looks like a buy-in amount (number or 'no buy-in'), always use the squabble_start_game tool.
 6. Always reply if the user replies to the agent.
 
@@ -80,6 +80,9 @@ export const ERROR_MESSAGES = {
     `Could not find conversation for ID: ${id}`,
   AGENT_INIT_FAILED: "Failed to initialize agent:",
 } as const;
+
+// Minimum buy-in amount
+export const MIN_BUY_IN_AMOUNT = 0.5;
 
 // Required environment variables
 export const REQUIRED_ENV_VARS: string[] = [

@@ -3,6 +3,7 @@ import { ChatOpenAI } from "@langchain/openai";
 import type { Client, Conversation } from "@xmtp/node-sdk";
 import { z } from "zod";
 import { fetchUsersByAddresses } from "../neynar/neynar";
+import { MIN_BUY_IN_AMOUNT } from "../../config/constants";
 
 // Types for the tools
 interface SquabbleToolsConfig {
@@ -73,7 +74,7 @@ export function createSquabbleTools(config: SquabbleToolsConfig) {
 
 Reply or mention @squabble to play:
 → start game to begin
-→ Add a buy-in like "start game 0.01 USDC" if you want to raise the stakes 💸
+→ Add a buy-in like "start game 0.5 USDC" if you want to raise the stakes 💸
 
 Let's go! 🔥`;
 
@@ -99,14 +100,14 @@ Let's go! 🔥`;
         .nullable()
         .default(null)
         .describe(
-          "Buy-in amount for the game. Can be a number like '1', '0.01', or text like 'no buy-in', '10 USDC'. If not provided, ask the user for it. The amount must be specified in $ or USDC or just a number, in the latter case it will be interpreted as USDC. No other tokens!. "
+          "Buy-in amount for the game. Can be a number like '1', '0.5', or text like 'no buy-in', '10 USDC'. If not provided, ask the user for it. The minimum buy-in is 0.5 USDC. The amount must be specified in $ or USDC or just a number, in the latter case it will be interpreted as USDC. No other tokens!. "
         ),
     }),
     func: async ({ betAmount }) => {
       console.log("🔧 TOOL CALLED: squabble_start_game", { betAmount });
       // If no buy-in amount is specified, ask for it
       if (!betAmount || betAmount === "null" || betAmount.trim() === "") {
-        return "Please specify how much you'd like to buy-in for this game. You can enter an amount (like '0.01 ETH' or '10 USDC') or say 'no buy-in' if you prefer to play without buying-in.";
+        return "Please specify how much you'd like to buy-in for this game. You can enter an amount (like '0.5 $' or '10 USDC') or say 'no buy-in' if you prefer to play without buying-in.";
       }
 
       try {
@@ -125,6 +126,14 @@ Let's go! 🔥`;
         const senderAddress = memberStates?.[0]?.recoveryIdentifier?.identifier;
 
         const adjustedBetAmount = betAmount === "no buy-in" ? "0" : betAmount;
+
+        //if the betAmount is lower that the minimum buy-in, return an error via message
+        if (Number(adjustedBetAmount) < MIN_BUY_IN_AMOUNT) {
+          await conversation.send(
+            `❌ The minimum buy-in is ${MIN_BUY_IN_AMOUNT} USDC. Please try to create the game again with a higher amount.`
+          );
+          return `DIRECT_MESSAGE_SENT: ❌ The minimum buy-in is ${MIN_BUY_IN_AMOUNT} USDC. Please try to create the game again with a higher amount.`;
+        }
 
         const response = await fetch(`${squabbleUrl}/api/agent/create-game`, {
           method: "POST",
