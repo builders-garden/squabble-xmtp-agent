@@ -115,6 +115,8 @@ export async function handleMessage(
       message.conversationId
     )) as Conversation | null;
 
+    console.log("🔧 CONVERSATION ID:", message.conversationId);
+
     if (!conversation) {
       throw new Error(
         ERROR_MESSAGES.CONVERSATION_NOT_FOUND(message.conversationId)

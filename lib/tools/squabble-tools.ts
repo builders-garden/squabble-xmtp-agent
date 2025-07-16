@@ -128,11 +128,13 @@ Let's go! 🔥`;
         const adjustedBetAmount = betAmount === "no buy-in" ? "0" : betAmount;
 
         //if the betAmount is lower that the minimum buy-in, return an error via message
-        if (Number(adjustedBetAmount) < MIN_BUY_IN_AMOUNT) {
+        if (adjustedBetAmount !== "0") {
+          if (Number(adjustedBetAmount) < MIN_BUY_IN_AMOUNT) {
           //await conversation.send(
           //  `❌ The minimum buy-in is ${MIN_BUY_IN_AMOUNT} USDC. Please try to create the game again with a higher amount.`
           //);
           return `DIRECT_MESSAGE_SENT: ❌ The minimum buy-in is ${MIN_BUY_IN_AMOUNT} USDC. Please try to create the game again with a higher amount.`;
+          }
         }
 
         const response = await fetch(`${squabbleUrl}/api/agent/create-game`, {
