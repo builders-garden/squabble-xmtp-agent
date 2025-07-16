@@ -23,6 +23,7 @@ export async function isReplyToAgent(
 ): Promise<boolean> {
   // Check if the message is a reply type
   if (message.contentType?.typeId === "reply") {
+    console.log("🔧 MESSAGE IS A REPLY");
     try {
       // Check the parameters for the reference message ID
       const messageAny = message as any;

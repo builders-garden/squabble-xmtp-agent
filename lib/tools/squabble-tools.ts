@@ -133,7 +133,7 @@ Let's go! 🔥`;
           //await conversation.send(
           //  `❌ The minimum buy-in is ${MIN_BUY_IN_AMOUNT} USDC. Please try to create the game again with a higher amount.`
           //);
-          return `DIRECT_MESSAGE_SENT: ❌ The minimum buy-in is ${MIN_BUY_IN_AMOUNT} USDC. Please try to create the game again with a higher amount.`;
+          return `DIRECT_MESSAGE_SENT: ❌ The minimum buy-in is ${MIN_BUY_IN_AMOUNT} USDC. Please try to create the game again with a higher amount or say 'no buy-in' if you prefer to play without buying-in.`;
           }
         }
 
