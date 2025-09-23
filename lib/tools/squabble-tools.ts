@@ -52,7 +52,7 @@ async function generateResponse(prompt: string): Promise<string> {
   }
 }
 
-export function createSquabbleTools(config: SquabbleToolsConfig): ToolInterface[] {
+export function createSquabbleTools(config: SquabbleToolsConfig) {
   const {
     conversation,
     xmtpClient,
@@ -62,7 +62,6 @@ export function createSquabbleTools(config: SquabbleToolsConfig): ToolInterface[
     agentSecret,
   } = config;
 
-  // @ts-expect-error - TypeScript infinite type instantiation workaround
   const helpTool = new DynamicStructuredTool({
     name: "squabble_help",
     description: "Get help and rules for the Squabble game",
@@ -92,7 +91,6 @@ Let's go! 🔥`;
     },
   });
 
-  // @ts-expect-error - TypeScript infinite type instantiation workaround
   const startGameTool = new DynamicStructuredTool({
     name: "squabble_start_game",
     description:
@@ -177,7 +175,6 @@ Let's go! 🔥`;
     },
   });
 
-  // @ts-expect-error - TypeScript infinite type instantiation workaround
   const leaderboardTool = new DynamicStructuredTool({
     name: "squabble_leaderboard",
     description: "Show the current Squabble leaderboard for this group chat",
@@ -239,7 +236,6 @@ Let's go! 🔥`;
     },
   });
 
-  // @ts-expect-error - TypeScript infinite type instantiation workaround
   const latestGameTool = new DynamicStructuredTool({
     name: "squabble_latest_game",
     description:
