@@ -379,10 +379,17 @@ export async function startMessageListener(
     try {
       await client.conversations.sync();
       await client.conversations.streamAllMessages(
-        onMessage,
-        undefined,
-        undefined,
-        onMessageStreamFail
+        {
+          onValue: (message) => {
+            onMessage(null, message);
+          },
+          onError: (error) => {
+            undefined;
+          },
+          onFail: () => {
+            onMessageStreamFail();
+          },
+        },
       );
       console.log("✅ Message stream started successfully");
     } catch (error) {
