@@ -381,6 +381,7 @@ export async function startMessageListener(
       await client.conversations.streamAllMessages(
         {
           onValue: (message) => {
+            console.log("🔧 MESSAGE STREAM: Message received", message);
             onMessage(null, message);
           },
           onError: (error) => {
