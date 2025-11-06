@@ -8,7 +8,7 @@ import { base } from "viem/chains";
 import { env } from "./lib/env.js";
 import { createXmtpAgent, handleXmtpMessage } from "./lib/xmtp/agent.js";
 import type { RequestWithRawBody } from "./types/index.js";
-import { WELCOME_MESSAGE } from "./lib/constants.js";
+//import { WELCOME_MESSAGE } from "./lib/constants.js";
 import { ConsentState } from "@xmtp/agent-sdk";
 import { eyesReactionMiddleware } from "./lib/xmtp/middlewares.js";
 
@@ -375,7 +375,7 @@ async function main() {
 		await handleXmtpMessage(ctx, agentAddress);
 	});
 
-	xmtpAgent.on("group", async (ctx) => {
+	//xmtpAgent.on("group", async (ctx) => {
 		/*
 		console.log("Group received event", JSON.stringify(ctx.conversation));
 		const conversationId = ctx.conversation.id;
@@ -399,7 +399,7 @@ async function main() {
 			await fetchedConversation.send(WELCOME_MESSAGE);
 		}
 		*/
-	});
+	//});
 
 	xmtpAgent.on("unknownMessage", async (ctx) => {
 		console.log(`Unknown message received: ${JSON.stringify(ctx)}`);
