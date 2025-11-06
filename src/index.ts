@@ -376,6 +376,7 @@ async function main() {
 	});
 
 	xmtpAgent.on("group", async (ctx) => {
+		/*
 		console.log("Group received event", JSON.stringify(ctx.conversation));
 		const conversationId = ctx.conversation.id;
 		const fetchedConversation =
@@ -397,14 +398,20 @@ async function main() {
 		if (!hasSentBefore) {
 			await fetchedConversation.send(WELCOME_MESSAGE);
 		}
+		*/
 	});
 
 	xmtpAgent.on("unknownMessage", async (ctx) => {
 		console.log(`Unknown message received: ${JSON.stringify(ctx)}`);
+		console.log("Unknown message", ctx.message);
 	});
 
 	xmtpAgent.on("unhandledError", async (ctx) => {
 		console.log(`Unhandled error received: ${JSON.stringify(ctx)}`);
+		console.log("Unhandled error", ctx.name);
+		console.log("Unhandled error", ctx.message);
+		console.log("Unhandled error", ctx.stack);
+		
 	});
 
 	// Handle startup
