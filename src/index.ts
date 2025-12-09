@@ -1,3 +1,5 @@
+//import { WELCOME_MESSAGE } from "./lib/constants.js";
+import { ConsentState } from "@xmtp/agent-sdk";
 import { logDetails } from "@xmtp/agent-sdk/debug";
 import cookieParserMiddleware from "cookie-parser";
 import cors from "cors";
@@ -7,10 +9,8 @@ import morganLogger from "morgan";
 import { base } from "viem/chains";
 import { env } from "./lib/env.js";
 import { createXmtpAgent, handleXmtpMessage } from "./lib/xmtp/agent.js";
-import type { RequestWithRawBody } from "./types/index.js";
-//import { WELCOME_MESSAGE } from "./lib/constants.js";
-import { ConsentState } from "@xmtp/agent-sdk";
 import { eyesReactionMiddleware } from "./lib/xmtp/middlewares.js";
+import type { RequestWithRawBody } from "./types/index.js";
 
 /**
  * Convert string consent states to numeric values expected by XMTP SDK
@@ -376,7 +376,7 @@ async function main() {
 	});
 
 	//xmtpAgent.on("group", async (ctx) => {
-		/*
+	/*
 		console.log("Group received event", JSON.stringify(ctx.conversation));
 		const conversationId = ctx.conversation.id;
 		const fetchedConversation =
@@ -411,12 +411,11 @@ async function main() {
 		console.log("Unhandled error", ctx.name);
 		console.log("Unhandled error", ctx.message);
 		console.log("Unhandled error", ctx.stack);
-		
 	});
 
 	// Handle startup
 	xmtpAgent.on("start", async () => {
-		console.log("🦊 Squabble XMTP Agent is running...");
+		console.log("🔠 Squabble XMTP Agent is running...");
 		logDetails(xmtpAgent.client);
 	});
 
@@ -424,7 +423,7 @@ async function main() {
 
 	// Start HTTP server and capture handle for graceful shutdown
 	server = app.listen(port, () => {
-		console.log(`🚀 Express.js server is running at http://localhost:${port}`);
+		console.log(`🚀 Express.js server is running at ${port}`);
 	});
 
 	// Unified graceful shutdown
